@@ -1,15 +1,26 @@
+################################################################################
+# 
+# Simulations for the paper: Estimating the Entropy Rate of Finite Markov Chains 
+#                            with Application to Quantifying Predictability of 
+#                            Behavior
+# 
+# Paper Authors            : Brian Vegetabile, Hal Stern
+# Code Written by:         : Brian Vegetabile (bvegetab [ATSYMBOL] uci [dot] edu)
+# 
+#
+################################################################################
+
+################################################################################
+# Loading packages
+################################################################################
 library("stringr")
 library('xtable')
 library('dirmult')
 library('lattice')
 source('/Users/bvegetabile/Dropbox/rCode/entropyRate.R')
 setwd('/Users/bvegetabile/Dropbox/ucirvine/research/papers/2017_entropyrate/methodpaper/')
-
-
 ################################################################################
-#
-# Visualization Functions
-#
+# Visualization Functions for simulations
 ################################################################################
 
 trellis.state.transition <- function(test.case, titl='True Entropy Rate:'){
