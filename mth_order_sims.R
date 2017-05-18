@@ -57,7 +57,6 @@ a = 0.1
 phi <- a/p - 1
 c = a - phi
 
-
 q = 0.75
 d = 0.2
 gam = d/q - 1
@@ -65,6 +64,8 @@ b = d - gam
 
 print(c(p,a,phi, c))
 print(c(d,q,gam, b))
+
+para_set1 <- c(phi, gam)
 
 so_test_one_sim1 <- TwoOrderTransition(p, q, a/p - 1, d/q - 1)
 fo_test_one_sim1 <- matrix(c(1-p, p, q, 1-q), 2,2, T)
@@ -98,6 +99,8 @@ q = 0.75
 d = 0.95
 gam = d/q - 1
 b = d - gam
+
+para_set2 <- c(phi, gam)
 
 print(c(p,a,phi, c))
 print(c(d,q,gam, b))
@@ -134,6 +137,8 @@ q = 0.75
 d = 0.01
 gam = d/q - 1
 b = d - gam
+
+para_set3 <- c(phi, gam)
 
 print(c(p,a,phi, c))
 print(c(d,q,gam, b))
@@ -223,14 +228,16 @@ plotEntropyDifference <- function(p, q,phi_res=100, gam_res=100, case_name=''){
         xlab=expression(phi),
         ylab=expression(gamma), 
         main=paste('Entropy Rate, p = ', p, ', q = ', q,sep=''))
-  contour(phi_test, gam_test, ent2_grid, add=T)
+  contour(phi_test, gam_test, ent2_grid, add=T, col=rgb(0,0,0,0.5))
   abline(h = seq(-1,1,0.25), lty=3, col=rgb(0,0,0,0.5))
   abline(v = seq(-1,1,0.25), lty=3, col=rgb(0,0,0,0.5))
 }
 
-# pdf('so_analytical_diff.pdf', height=5, width=7)
+pdf('so_analytical_diff.pdf', height=5, width=6)
 par(mfcol=c(1,1), mar=c(5,4,2,1)+0.1)
 plotEntropyDifference(0.4, 0.75, 100, 100, '')
-# dev.off()
+points(para_set1[1], para_set1[2], pch=18, lwd=2, cex=2)
+points(para_set2[1], para_set2[2], pch=18, lwd=2, cex=2)
+dev.off()
 # 
 #-------------------------------------------------------------------------------
