@@ -1,14 +1,13 @@
 ################################################################################
 #
-# Estimation of Behavioral Entropy Rate 
+# Estimation of Behavioral Entropy Rate
 # - Code developed for the Conte Center @ UC Irvine
-# - Author: Brian Vegetabile 
+# - Author: Brian Vegetabile
 #
 ################################################################################
 
 # Required Packages ------------------------------------------------------------
 require('intervals')
-require('expm')
 require('readxl')
 
 # Required Functions: Entropy Rate Estimation ----------------------------------
@@ -23,7 +22,7 @@ ber_analyze_dir <- function(dir_loc,
                             tactile_padding = 1.0,
                             auditory_padding = 1.0,
                             behavior_types=list("mom_auditory_types" = c('Vocal'),
-                                                "mom_tactile_types" = c('TouchBaby', 
+                                                "mom_tactile_types" = c('TouchBaby',
                                                                         'HoldingBaby'),
                                                 "mom_visual_types" = c('ManipulatingObject'),
                                                 "baby_visual_types" = c('LookAtMomActivity'),
@@ -31,12 +30,12 @@ ber_analyze_dir <- function(dir_loc,
                                                                     'ActivityNotVisible',
                                                                     'CantTellLooking')),
                             missing_threshold = 0.1){
-  
-  
+
+
   # Reading in data
   all_files = list.files(dir_loc, pattern="*.xlsx")
   n_files = length(all_files)
-  
+
   # Allocating DataFrame for returning data
   resultsDF <- data.frame('SubjectID'=character(),
                           'CanEstimateEntropy'=logical(),
@@ -52,20 +51,20 @@ ber_analyze_dir <- function(dir_loc,
                           'VisualAverageTime'=double(),
                           'TactileCounts'=double(),
                           'TactileTotalTime'=double(),
-                          'TactileAverageTime'=double(), 
+                          'TactileAverageTime'=double(),
                           stringsAsFactors = F)
-  
-  
+
+
   # Analysis Section -----------------------------------------------------------
-  
+
   run_start <- Sys.time()
   run_count <- 1
   for (i in 1:n_files){
     individual_file <- all_files[i]
-    resultsDF[i,] <- ber_analyze_file(individual_file, 
-                                      tactile_padding=tactile_padding, 
+    resultsDF[i,] <- ber_analyze_file(individual_file,
+                                      tactile_padding=tactile_padding,
                                       auditory_padding=auditory_padding,
-                                      behavior_types=behavior_types, 
+                                      behavior_types=behavior_types,
                                       missing_threshold=missing_threshold)
     run_count = run_count + 1
     message(paste('COMPLETED ID: ', resultsDF[i,1]))
@@ -77,13 +76,13 @@ ber_analyze_dir <- function(dir_loc,
 
 
 
-ber_analyze_file <- function(f_loc, 
-                             plot_all=F, 
+ber_analyze_file <- function(f_loc,
+                             plot_all=F,
                              plots_to_file=F,
                              tactile_padding = 1.0,
                              auditory_padding = 1.0,
                              behavior_types=list("mom_auditory_types" = c('Vocal'),
-                                                 "mom_tactile_types" = c('TouchBaby', 
+                                                 "mom_tactile_types" = c('TouchBaby',
                                                                          'HoldingBaby'),
                                                  "mom_visual_types" = c('ManipulatingObject'),
                                                  "baby_visual_types" = c('LookAtMomActivity'),
@@ -91,20 +90,20 @@ ber_analyze_file <- function(f_loc,
                                                                      'ActivityNotVisible',
                                                                      'CantTellLooking')),
                              missing_threshold = 0.1){
-  
+
   # Unpacking input behavior types ---------------------------------------------
   mom_auditory_types <- behavior_types$mom_auditory_types
   mom_tactile_types <- behavior_types$mom_tactile_types
   mom_visual_types <- behavior_types$mom_visual_types
   baby_visual_types <- behavior_types$baby_visual_types
   missing_types <- behavior_types$missing_types
-  
+
   # extracting data from file using the readxl package
   behavior_data <- data.frame(read_xlsx(f_loc))
-  
+
   # Mother ID should be in first cell in the observation column
   id_number <- behavior_data$Observation[1]
-  
+
   # Identifying the last time between both the mother and baby files
   lasttime = max(behavior_data$Time_Relative_sf)
   lastduration = max(subset(behavior_data,
@@ -115,7 +114,7 @@ ber_analyze_file <- function(f_loc,
   missing <- subset_by_types(behavior_data,
                              missing_types)
   percent_missing <- sum(missing$Duration_sf)/endtime
-  
+
   if(percent_missing>=missing_threshold){
     message(paste('Mother/Child: ', id_number, ' - Not enough usable time'))
     data2return <- data.frame('SubjectID'=id_number,
@@ -179,7 +178,7 @@ ber_analyze_file <- function(f_loc,
   transition_matrix <- CalcTransitionMatrix(transition_counts)
   stationary_matrix <- CalcEmpiricalStationary(state_sequence[,5], 1:8)
   entropy_rate <- CalcMarkovEntropyRate(transition_matrix, stationary_matrix)
-  
+
   numbered_states <- c()
   for(i in 1:nrow(state_sequence)){
     numbered_states <- rbind(numbered_states,
@@ -187,7 +186,7 @@ ber_analyze_file <- function(f_loc,
     numbered_states <- rbind(numbered_states,
                              c(state_sequence[i,]$End, state_sequence[i,]$point))
   }
-  
+
   if(plot_all == T){
     plot_file(endtime=endtime,
               aud_states=aud_states,
@@ -195,28 +194,28 @@ ber_analyze_file <- function(f_loc,
               vis_states=vis_states,
               numbered_states=numbered_states,
               id_number=id_number)
-    
+
     plot_orig(endtime=endtime,
               aud_states=aud_states,
               tac_states=tac_states,
               vis_states=vis_states,
               numbered_states=numbered_states,
               id_number=id_number)
-    
+
     plot_transformed(endtime=endtime,
                      alltypes=alltypes,
                      id_number=id_number)
-    
+
     plot_sequence(state_sequence=state_sequence,
                   id_number=id_number)
-    
+
     plot_counts(transition_counts, id_number)
-    
+
     plot_transitions(transition_matrix, id_number)
   }
-  
-  
-  
+
+
+
   data2return <- data.frame('SubjectID'=as.character(id_number),
                             'CanEstimateEntropy'=TRUE,
                             'EntropyRate'=entropy_rate,
@@ -231,9 +230,9 @@ ber_analyze_file <- function(f_loc,
                             'VisualAverageTime'=mean(vis_states[,3]),
                             'TactileCounts'=nrow(tac_states),
                             'TactileTotalTime'=sum(tac_states[,3]),
-                            'TactileAverageTime'=mean(tac_states[,3]), 
+                            'TactileAverageTime'=mean(tac_states[,3]),
                             stringsAsFactors = F)
-  
+
   return(data2return)
 }
 
@@ -414,11 +413,11 @@ plot_transitions <- function(transition_matrix, id_number){
 subset_by_types <- function(dset, event_str, padding=0.0){
   dat <- c()
   for(i in 1:length(event_str)){
-    dat <- rbind(dat, dset[(dset$Behavior == event_str[i]) & 
+    dat <- rbind(dat, dset[(dset$Behavior == event_str[i]) &
                              ((dset$Event_Type =='State start') | (dset$Event_Type =='State point')) ,
                            c("Time_Relative_sf",'Duration_sf')])
   }
-  dat$Duration_sf[dat$Duration_sf == 0] <- padding    
+  dat$Duration_sf[dat$Duration_sf == 0] <- padding
   return(dat)
 }
 
@@ -433,14 +432,14 @@ compare_intersection <-  function (mother, baby, statetype=""){
   names(mombaby_intersection) <- c('Start', 'End')
   mombaby_intersection$Duration <- mombaby_intersection$End - mombaby_intersection$Start
   mombaby_intersection$State <- statetype
-  return(mombaby_intersection) 
+  return(mombaby_intersection)
 }
 
 find_unions <- function(times, statetype=""){
   ints <- Intervals(cbind(times[,1], times[,1]+times[,2]))
-  
+
   allunions <- interval_union(ints)
-  
+
   if(length(allunions)==0){
     allunions <- data.frame(c(0),c(0))
   }
@@ -448,7 +447,7 @@ find_unions <- function(times, statetype=""){
   names(allunions) <- c('Start', 'End')
   allunions$Duration <- allunions$End - allunions$Start
   allunions$State <- statetype
-  return(allunions) 
+  return(allunions)
 }
 
 state_complement<- function(whole_interval, states, statetype=""){
