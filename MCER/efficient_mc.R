@@ -95,15 +95,15 @@ plot(win_res[,1], win_res[,2])
 abline(h=CalcMarkovEntropyRate(tm, CalcEigenStationary(tm)), lty=3, col='red')
 abline(h=SWLZEntRate(mc))
 
-n_sims <- 1000
+n_sims <- 100
 sim_res <- matrix(NA, nrow=n_sims, ncol=3)
 for(s in 1:n_sims){
-  mc <- SimulateMarkovChain(tm, 250)
+  mc <- SimulateMarkovChain(tm, 5000)
   sim_res[s, ] <- c(efficient_mc_er(mc),
-                    efficient_lz77(mc, 125),
+                    efficient_lz77(mc, 1000),
                     SWLZEntRate(mc))
 }
 boxplot.matrix(sim_res)
 abline(h=CalcMarkovEntropyRate(tm, CalcEigenStationary(tm)), lty=3, col='red')
 
-pairs(sim_res)
+
