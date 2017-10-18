@@ -330,13 +330,14 @@ title('Markov Chain')
 title('\n\nStationary Block Bootstrap', outer = T)
 dev.off()
 
+case <- 1
 
-tm <- fo_sim_cases[[2]]
+tm <- fo_sim_cases[[case]]
 true_er <- CalcMarkovEntropyRate(tm, CalcEigenStationary(tm))
-seq_len = 1000
-bootsamps <- 500
+seq_len = 500
+bootsamps <- 1000
 test_p <- true_er / log2(seq_len)
-n_sims <- 100
+n_sims <- 10
 bs1_res <- matrix(NA, nrow=n_sims, ncol = bootsamps)
 bs2_res <- matrix(NA, nrow=n_sims, ncol = bootsamps)
 for(i in 1:n_sims){
@@ -344,28 +345,48 @@ for(i in 1:n_sims){
   for(bs in 1:bootsamps){
     new_mc <- stationary_bootstrap(mc, test_p)
     lzent <- SWLZEntRate(new_mc)
-    mcent <- efficient_mc_er(new_mc)
+    # lzent <- fixedwindow_lz77(new_mc, 750)
+    mcent <- efficient_mc_er(new_mc, 3)
     bs1_res[i, bs] <- lzent
     bs2_res[i, bs] <- mcent
   }
   message('.', appendLF = F)
 }
 
-par(mfrow=c(1,2))
-plot(density(emp_results[[2]][,4]), xlim=c(0,1), ylim=c(0,ymax),
+
+ymax <- max(max(density(emp_results[[case]])$y),
+            max(density(bs1_res[1,])$y),
+            max(density(bs2_res[1,])$y))
+par(mfrow=c(2,2))
+plot(density(emp_results[[case]][,3]), xlim=c(0,1), ylim=c(0,20),
      xlab='', main=paste('Effective Block Size =',1/test_p))
 for(s in 1:nrow(bs1_res)){
   lines(density(bs1_res[s,]), col=rgb(0.75,0,0,0.25))
 }
-
-
-
-plot(density(emp_results[[2]][,4]), xlim=c(0,1), ylim=c(0,ymax),
+plot(density(emp_results[[case]][,3]), xlim=c(0,1), ylim=c(0,20),
      xlab='', main=paste('Effective Block Size =',1/test_p))
 for(s in 1:nrow(bs1_res)){
   lines(density(bs2_res[s,]), col=rgb(0,0,0.75,0.25))
 }
 
+# par(mfrow=c(1,2))
+plot(density(emp_results[[case]][,3]), xlim=c(0,1), ylim=c(0,25),
+     xlab='', main=paste('Effective Block Size =',1/test_p))
+for(s in 1:nrow(bs1_res)){
+    lines(density((bs1_res[s,] - test_p) / (1-test_p)), col=rgb(0.75,0,0,0.25))    
+}
+lines(density(emp_results[[case]][,3]), col='black', lwd=2)
+abline(v=true_er, lty=3)
+plot(density(emp_results[[case]][,3]), xlim=c(0,1), ylim=c(0,30),
+     xlab='', main=paste('Effective Block Size =',1/test_p))
+for(s in 1:nrow(bs2_res)){
+    lines(density((bs2_res[s,] - test_p) / (1-test_p)), col=rgb(0,0,0.75,0.25))    
+}
+lines(density(emp_results[[case]][,3]), col='black', lwd=2)
+abline(v=true_er, lty=3)
+
+
+# Testing with fixed windows ------------------
 
 
 
@@ -461,3 +482,26 @@ for(s in 1:nrow(bs1_res)){
 # abline(h=CalcMarkovEntropyRate(tm, CalcEigenStationary(tm)), lty=3, col='red')
 #
 #
+set.seed(123)
+tm <- matrix(NA, 8,8)
+upper <- 6.3
+tm[1,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+tm[2,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+tm[3,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+tm[4,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+tm[5,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+tm[6,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+tm[7,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+tm[8,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+
+
+n_sims <- 1000
+mc_results <- matrix(NA, nrow=n_sims, ncol=3)
+true_er <- CalcMarkovEntropyRate(tm, CalcEigenStationary(tm))
+for(i in 1:n_sims){
+    mc <- SimulateMarkovChain(tm, n_sims = 500)
+    mc_results[i, 1] <- SWLZEntRate(mc)
+    mc_results[i, 2] <- fixedwindow_lz77(mc, 250)    
+    mc_results[i, 3] <- fixedquick_lz77(mc, 250)    
+}
+
