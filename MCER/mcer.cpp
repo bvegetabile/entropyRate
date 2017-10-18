@@ -101,11 +101,44 @@ double lz77entropy(std::string x, int window_size = 10){
       }
     }
   }
-
-
-
-
   return ent / counter;
 }
+
+// [[Rcpp::export]]
+double lz77entropy_quick(std::string x, int window_size = 10){
+  int str_len = x.length();
+  int start_pos = window_size;
+  int right_pointer = start_pos;
+  int pos = start_pos;
+  int max_pointer = str_len - 1;
+  int n_char;
+  int counter = 0;
+  double L = 0;
+  double ent = 0;
+
+  std::string window;
+  std::string right_word;
+
+  while(right_pointer < max_pointer){
+    window = x.substr(pos-window_size, window_size);
+    while(right_pointer <= max_pointer){
+      n_char = right_pointer - pos + 1;
+      right_word = x.substr(pos, n_char);
+      if(window.find(right_word) == -1){
+        counter += 1;
+        L += n_char;
+        ent += std::log2(window_size) / n_char;
+        pos += 1;
+        right_pointer += pos;
+        // std::cout << right_word << '\n';
+        break;
+      } else {
+        right_pointer += 1;
+      }
+    }
+  }
+  return ent / counter;
+}
+
 
 
