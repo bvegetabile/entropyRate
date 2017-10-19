@@ -373,14 +373,14 @@ for(s in 1:nrow(bs1_res)){
 plot(density(emp_results[[case]][,3]), xlim=c(0,1), ylim=c(0,25),
      xlab='', main=paste('Effective Block Size =',1/test_p))
 for(s in 1:nrow(bs1_res)){
-    lines(density((bs1_res[s,] - test_p) / (1-test_p)), col=rgb(0.75,0,0,0.25))    
+    lines(density((bs1_res[s,] - test_p) / (1-test_p)), col=rgb(0.75,0,0,0.25))
 }
 lines(density(emp_results[[case]][,3]), col='black', lwd=2)
 abline(v=true_er, lty=3)
 plot(density(emp_results[[case]][,3]), xlim=c(0,1), ylim=c(0,30),
      xlab='', main=paste('Effective Block Size =',1/test_p))
 for(s in 1:nrow(bs2_res)){
-    lines(density((bs2_res[s,] - test_p) / (1-test_p)), col=rgb(0,0,0.75,0.25))    
+    lines(density((bs2_res[s,] - test_p) / (1-test_p)), col=rgb(0,0,0.75,0.25))
 }
 lines(density(emp_results[[case]][,3]), col='black', lwd=2)
 abline(v=true_er, lty=3)
@@ -483,25 +483,152 @@ abline(v=true_er, lty=3)
 #
 #
 set.seed(123)
-tm <- matrix(NA, 8,8)
+med_mat <- matrix(NA, 8,8)
 upper <- 6.3
-tm[1,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
-tm[2,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
-tm[3,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
-tm[4,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
-tm[5,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
-tm[6,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
-tm[7,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
-tm[8,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[1,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[2,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[3,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[4,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[5,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[6,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[7,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
+med_mat[8,] <- dirmult::rdirichlet(n=1, alpha = sample(1:8, 8, replace = T)^upper)
 
 
+big_mats <- list('Low' = matrix(c( .95, 0.05,   0,   0,   0,   0,   0,   0,
+                                   .025,  .95, .025,   0,   0,   0,   0,   0,
+                                   0, .025,  .95, .025,   0,   0,   0,   0,
+                                   0,   0, .025,  .95, .025,   0,   0,   0,
+                                   0,   0,   0, .025,  .95, .025,   0,   0,
+                                   0,   0,   0,   0, .025,  .95, .025,   0,
+                                   0,   0,   0,   0,   0, .025,  .95, .025,
+                                   0,   0,   0,   0,   0,   0,  .05,  .95),
+                                8,8, byrow=TRUE),
+                 'Medium' = med_mat,
+                 'High' = dirmult::rdirichlet(n=8, alpha = c(rep(5,8))))
+pdf('comparing_swlzmethods.pdf', height=3, width=16)
 n_sims <- 1000
-mc_results <- matrix(NA, nrow=n_sims, ncol=3)
-true_er <- CalcMarkovEntropyRate(tm, CalcEigenStationary(tm))
-for(i in 1:n_sims){
-    mc <- SimulateMarkovChain(tm, n_sims = 500)
+seq_len <- 1000
+tm_names <- names(big_mats)
+
+mc_output <- list()
+
+par(mfrow=c(1,3))
+for(j in 1:length(big_mats)){
+  tm <- big_mats[[j]]
+  mc_results <- matrix(NA, nrow=n_sims, ncol=4)
+  true_er <- CalcMarkovEntropyRate(tm, CalcEigenStationary(tm))
+  for(i in 1:n_sims){
+    mc <- SimulateMarkovChain(tm, n_sims = seq_len)
     mc_results[i, 1] <- SWLZEntRate(mc)
-    mc_results[i, 2] <- fixedwindow_lz77(mc, 250)    
-    mc_results[i, 3] <- fixedquick_lz77(mc, 250)    
+    mc_results[i, 2] <- fixedwindow_lz77(mc, seq_len/2)
+    mc_results[i, 3] <- fixedquick_lz77(mc, seq_len/2)
+    mc_results[i, 4] <- efficient_mc_er(mc)
+  }
+
+  mc_output[[j]] <- mc_results
+
+  par(mar=c(5,10,4,2)+0.1)
+  boxplot.matrix(mc_results, horizontal = T, axes=F,
+                 main=paste(tm_names[j], 'Entropy Rate'))
+  axis(2, 1:4, c('Expanding Window', 'Fixed Window O(n^2)',
+                 'Fixed Window O(n)', 'True Model (Markov Chain)'),las=2)
+  axis(1)
+  abline(v=c(0,3), lty=3)
+  abline(v=true_er, lty=2, col='red')
 }
+dev.off()
+
+case <- 2
+
+set.seed(12398)
+tm <- big_mats[[case]]
+true_er <- CalcMarkovEntropyRate(tm, CalcEigenStationary(tm))
+mc <- SimulateMarkovChain(tm, seq_len)
+est1 <- SWLZEntRate(mc)
+est2 <- fixedwindow_lz77(mc, seq_len/500)
+bs_samps <- 1000
+block_sizes <- c(6,10,15,25,50,75,100,250,500)
+bs_results <- list()
+for(s in 1:length(block_sizes)){
+  block_size <- block_sizes[s]
+  bootstraps <- matrix(NA, nrow=bs_samps, ncol=6)
+  for(bs in 1:bs_samps){
+    bs1 <- block_bootstrap(mc, block_size)
+    bs2 <- overlap_bootstrap(mc, block_size)
+    bs3 <- stationary_bootstrap(mc, 1/block_size)
+    bootstraps[bs, 1] <- fixedwindow_lz77(bs1, window_size = seq_len/2)
+    bootstraps[bs, 2] <- SWLZEntRate(bs1)
+    bootstraps[bs, 3] <- fixedwindow_lz77(bs2, window_size = seq_len/2)
+    bootstraps[bs, 4] <- SWLZEntRate(bs2)
+    bootstraps[bs, 5] <- fixedwindow_lz77(bs3, window_size = seq_len/2)
+    bootstraps[bs, 6] <- SWLZEntRate(bs3)
+  }
+  colnames(bootstraps) <- c('FW:Block', 'EW:Block',
+                            'FW:Overlap', 'EW:Overlap',
+                            'FW:Stationary', 'EW:Stationary')
+  bs_results[[s]] <- list('block_size' = block_size,
+                          'bootstraps' = bootstraps)
+  message(paste('Block Size:',block_size, 'done.'))
+}
+
+emp_dist <- mc_output[[case]]
+
+par(mfrow=c(3,3))
+for(i in 1:9){
+  block_size <- block_sizes[i]
+  d1 <- density(emp_dist[,4])
+  plot(d1, xlim=c(0,3))
+  samps <- bs_results[[i]][[2]][,4]
+  lines(density(samps, na.rm = T), col=rgb(0,0,0,0.5))
+  abline(v=est1)
+}
+
+sd_true <- sd(emp_dist[,4])
+sd_res <- matrix(NA, nrow=9, ncol=6)
+for(i in 1:9){
+  sd_res[i,] <- apply(bs_results[[i]][[2]], 2, sd, na.rm=T)
+}
+
+mean_true <- mean(emp_dist[,4])
+mean_res <- matrix(NA, nrow=9, ncol=6)
+for(i in 1:9){
+  mean_res[i,] <- apply(bs_results[[i]][[2]], 2, mean, na.rm=T)
+}
+
+
+
+pdf('med_entropy_bootstrapstderrs.pdf', height=5, width=10)
+par(mfrow=c(1,1))
+plot(block_sizes[1:8], sd_res[1:8,1], ylim=c(0, max(sd_res)), type='l',
+     ylab='Bootstrap Standard Error',
+     xlab='Block Size')
+for(t in 2:6){
+  lines(block_sizes[1:8], sd_res[1:8,t],lty=t)
+}
+abline(v=log2(seq_len)/true_er, col='blue')
+legend('topleft', c('FW:Block', 'EW:Block',
+                    'FW:Overlap', 'EW:Overlap',
+                    'FW:Stationary', 'EW:Stationary'),
+       lty=1:6)
+abline(h=sd_true)
+dev.off()
+
+
+pdf('med_entropy_bootstrapmeans.pdf', height=5, width=10)
+par(mfrow=c(1,1))
+plot(block_sizes[1:8], mean_res[1:8,1], ylim=c(0, max(mean_res)), type='l',
+     ylab='Bootstrap Standard Error',
+     xlab='Block Size')
+for(t in 2:6){
+  lines(block_sizes[1:8], mean_res[1:8,t],lty=t)
+}
+abline(v=log2(seq_len)/true_er, col='blue')
+legend('topright', c('FW:Block', 'EW:Block',
+                    'FW:Overlap', 'EW:Overlap',
+                    'FW:Stationary', 'EW:Stationary'),
+       lty=1:6)
+abline(h=mean_true)
+abline(h=c(est1, est2), lty=2:3, col='red')
+dev.off()
 
