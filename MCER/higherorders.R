@@ -16,8 +16,8 @@ TwoOrderTransition <- function(p,q,phi=0,gam=0){
 SimulateTwoOrder <- function(tm, n_sims=100, ss=c("11", "12", "21", "22")){
     so_seq <- SimulateMarkovChain(tm, n_sims = n_sims)
     so_symb <- ss[so_seq]
-    mc_chain <- c(as.integer(substr(so_symb[1], 1,1)), 
-                  as.integer(substr(so_symb[1], 2,2))) 
+    mc_chain <- c(as.integer(substr(so_symb[1], 1,1)),
+                  as.integer(substr(so_symb[1], 2,2)))
     for(i in 2:n_sims){
         mc_chain <- c(mc_chain, as.integer(substr(so_symb[i], 2,2)))
     }
@@ -44,24 +44,88 @@ ent2 <- CalcMarkovEntropyRate(tm2, CalcEigenStationary(tm2))
 tm1 <- matrix(c(1-p, p, q, 1-q), 2,2, T)
 ent1 <- CalcMarkovEntropyRate(tm1, CalcEigenStationary(tm1))
 
-seq_len <- 5000
+seq_len <- 1000
 mc2 <- SimulateTwoOrder(tm2, seq_len)
-fixed_window_ests <- matrix(NA, nrow=seq_len, ncol=2)
-for(i in 1:seq_len){
-    fixed_window_ests[i,] <- c(i, fixedquick_lz77(mc2, i))
+
+samp_dist <- matrix(NA, nrow=5000, ncol=4)
+for(i in 1:5000){
+  mc2 <- SimulateTwoOrder(tm2, seq_len)
+  samp_dist[i,] <- c(efficient_mc_er(mc2, 1),
+                     efficient_mc_er(mc2, 2),
+                     efficient_mc_er(mc2, 3),
+                     SWLZEntRate(mc2))
+  if(!(i %% 100) ){
+    message(paste(i, ':', sep=""), appendLF=F)
+  }
 }
-plot(fixed_window_ests[,1], fixed_window_ests[,2], type='l')
-abline(h=SWLZEntRate(mc2))
-abline(h=ent2, col='red', lty=3)
 
+apply(samp_dist, 2, sd)
 
+set.seed(8924)
+sims <- 100
+sim_study <- matrix(NA)
+sd_res <- matrix(NA, nrow=sims, ncol=4)
+mean_res <- matrix(NA, nrow=sims, ncol=4)
+est_res <- matrix(NA, nrow=sims, ncol=4)
+for(i in 1:sims){
+  mc2 <- SimulateTwoOrder(tm2, seq_len)
+  est1 <- efficient_mc_er(mc2, 1)
+  est2 <- efficient_mc_er(mc2, 2)
+  est3 <- efficient_mc_er(mc2, 3)
+  est4 <- SWLZEntRate(mc2)
+  p1 <- est1 / log2(seq_len)
+  p2 <- est2 / log2(seq_len)
+  p3 <- est3 / log2(seq_len)
+  p4 <- est4 / log2(seq_len)
 
-SWLZEntRate(mc2)
+  B <- 100
+  bs_res <- matrix(NA, nrow=B, ncol=4)
+  # Bootstrap 1
+  for(b in 1:B){
+    mc_new1 <- stationary_bootstrap(mc2, p1)
+    mc_new2 <- stationary_bootstrap(mc2, p2)
+    mc_new3 <- stationary_bootstrap(mc2, p3)
+    mc_new4 <- stationary_bootstrap(mc2, p4)
 
-mc_ents <- matrix(NA, nrow=15, ncol=2)
-for(i in 1:15){
-    mc_ents[i,] <- c(i, efficient_mc_er(mc2, i))
+    bs1 <- efficient_mc_er(mc_new1)
+    bs2 <- efficient_mc_er(mc_new2, 2)
+    bs3 <- efficient_mc_er(mc_new3, 3)
+    bs4 <- SWLZEntRate(mc_new4)
+    bs_res[b,] <- c(bs1, bs2, bs3, bs4)
+  }
+  est_res[i, ] <- c(est1, est2, est3, est4)
+  mean_res[i, ] <- apply(bs_res, 2, mean)
+  sd_res[i, ] <- apply(bs_res, 2, sd)
+  if(!(i %% 100) ){
+    message(paste(i, ':', sep=""), appendLF=F)
+  }
 }
-plot(mc_ents[,1], mc_ents[,2])
-abline(h=SWLZEntRate(mc2))
-abline(h=ent2, col='red', lty=3)
+
+apply(samp_dist, 2, sd)
+apply(sd_res, 2, median, na.rm=T)
+
+
+spot <- 1
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
+abline(v=apply(samp_dist, 2, sd)[2])
+abline(v=mean(sd_res[,spot]), col='red')
+
+spot <- 2
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
+abline(v=apply(samp_dist, 2, sd)[2])
+abline(v=mean(sd_res[,spot]), col='red')
+spot <- 3
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
+abline(v=apply(samp_dist, 2, sd)[2])
+abline(v=mean(sd_res[,spot]), col='red')
+spot <- 4
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
+abline(v=apply(samp_dist, 2, sd)[2])
+abline(v=mean(sd_res[,spot]), col='red')
+
+
+low_res <- est_res  - 1.96*sd_res
+upp_res <- est_res  + 1.96*sd_res
+
+cov_res <- low_res  < ent2 & upp_res > ent2
+apply(cov_res, 2, mean)
