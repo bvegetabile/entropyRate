@@ -508,7 +508,7 @@ big_mats <- list('Low' = matrix(c( .95, 0.05,   0,   0,   0,   0,   0,   0,
                  'High' = dirmult::rdirichlet(n=8, alpha = c(rep(5,8))))
 pdf('comparing_swlzmethods.pdf', height=3, width=16)
 n_sims <- 1000
-seq_len <- 1000
+seq_len <- 500
 tm_names <- names(big_mats)
 
 mc_output <- list()
@@ -521,8 +521,8 @@ for(j in 1:length(big_mats)){
   for(i in 1:n_sims){
     mc <- SimulateMarkovChain(tm, n_sims = seq_len)
     mc_results[i, 1] <- SWLZEntRate(mc)
-    mc_results[i, 2] <- fixedwindow_lz77(mc, seq_len/2)
-    mc_results[i, 3] <- fixedquick_lz77(mc, seq_len/2)
+    mc_results[i, 2] <- fixedwindow_lz77(mc, 0.9*seq_len)
+    mc_results[i, 3] <- fixedquick_lz77(mc, 0.9*seq_len)
     mc_results[i, 4] <- efficient_mc_er(mc)
   }
 

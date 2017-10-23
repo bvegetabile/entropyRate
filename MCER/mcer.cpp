@@ -128,9 +128,10 @@ double lz77entropy_quick(std::string x, int window_size = 10){
         counter += 1;
         L += n_char;
         ent += std::log2(window_size) / n_char;
-        pos += 1;
-        right_pointer += pos;
-        // std::cout << right_word << '\n';
+        pos += n_char;
+        right_pointer = pos;
+        // std::cout << right_pointer << ' ' << pos << '\n';
+        // std::cout << ent / counter << '\n';
         break;
       } else {
         right_pointer += 1;
