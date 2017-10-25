@@ -62,7 +62,7 @@ for(i in 1:5000){
 apply(samp_dist, 2, sd)
 
 set.seed(8924)
-sims <- 100
+sims <- 500
 sim_study <- matrix(NA)
 sd_res <- matrix(NA, nrow=sims, ncol=4)
 mean_res <- matrix(NA, nrow=sims, ncol=4)
@@ -104,28 +104,65 @@ for(i in 1:sims){
 apply(samp_dist, 2, sd)
 apply(sd_res, 2, median, na.rm=T)
 
-
-spot <- 1
-plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
-abline(v=apply(samp_dist, 2, sd)[2])
-abline(v=mean(sd_res[,spot]), col='red')
-
-spot <- 2
-plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
-abline(v=apply(samp_dist, 2, sd)[2])
-abline(v=mean(sd_res[,spot]), col='red')
-spot <- 3
-plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
-abline(v=apply(samp_dist, 2, sd)[2])
-abline(v=mean(sd_res[,spot]), col='red')
-spot <- 4
-plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)))
-abline(v=apply(samp_dist, 2, sd)[2])
-abline(v=mean(sd_res[,spot]), col='red')
-
-
 low_res <- est_res  - 1.96*sd_res
 upp_res <- est_res  + 1.96*sd_res
 
 cov_res <- low_res  < ent2 & upp_res > ent2
-apply(cov_res, 2, mean)
+coverage <- apply(cov_res, 2, mean)
+
+pdf('bootstrap_stderr.pdf', height=12, width=12)
+par(mfrow=c(2,2))
+spot <- 1
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)),
+     xlab='Bootstrap Standard Error',
+     ylab='Density',
+     main=paste('Bootstrap Standard Error : First-Order Markov Chain\nCoverage = ', 
+                round(coverage[spot],2), sep=''))
+abline(v=mean(sd_res[,spot]), lty=2)
+abline(v=apply(samp_dist, 2, sd)[2], lty=3, col=rgb(0.75,0,0,0.75))
+legend('topright', c('Simulation Means',
+                    'True Std. Err.'), 
+       col=c('black', rgb(0.75,0,0,0.75)),
+       lty=c(2,3))
+
+spot <- 2
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)),
+     xlab='Bootstrap Standard Error',
+     ylab='Density',
+     main=paste('Bootstrap Standard Error : Second-Order Markov Chain\nCoverage = ', 
+                round(coverage[spot],2), sep=''))
+abline(v=mean(sd_res[,spot]), lty=2)
+abline(v=apply(samp_dist, 2, sd)[2], lty=3, col=rgb(0.75,0,0,0.75))
+legend('topright', c('Simulation Means',
+                    'True Std. Err.'), 
+       col=c('black', rgb(0.75,0,0,0.75)),
+       lty=c(2,3))
+
+spot <- 3
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)),
+     xlab='Bootstrap Standard Error',
+     ylab='Density',
+     main=paste('Bootstrap Standard Error : Third-Order Markov Chain\nCoverage = ', 
+                round(coverage[spot],2), sep=''))
+abline(v=mean(sd_res[,spot]), lty=2)
+abline(v=apply(samp_dist, 2, sd)[2], lty=3, col=rgb(0.75,0,0,0.75))
+legend('topright', c('Simulation Means',
+                    'True Std. Err.'), 
+       col=c('black', rgb(0.75,0,0,0.75)),
+       lty=c(2,3))
+
+spot <- 4
+plot(density(sd_res[,spot], na.rm=T, from = 0, to = max(sd_res)),
+     xlab='Bootstrap Standard Error',
+     ylab='Density',
+     main=paste('Bootstrap Standard Error : Lempel-Ziv\nCoverage = ', 
+                round(coverage[spot],2), sep=''))
+abline(v=mean(sd_res[,spot]), lty=2)
+abline(v=apply(samp_dist, 2, sd)[2], lty=3, col=rgb(0.75,0,0,0.75))
+legend('topright', c('Simulation Means',
+                    'True Std. Err.'), 
+       col=c('black', rgb(0.75,0,0,0.75)),
+       lty=c(2,3))
+
+dev.off()
+

@@ -9,6 +9,7 @@
 # Loading relevent packages
 
 library("stringr")
+Rcpp::sourceCpp("/Users/bvegetabile/git/entropyRate/MCER/mcer.cpp")
 Rcpp::sourceCpp("/Users/bvegetabile/git/entropyRate/swlz_c.cpp")
 
 ################################################################################
@@ -174,6 +175,24 @@ CalcMarkovEntropyRate <- function(trans_mat, stat_mat){
   return(ent_rate)
 }
 
+##### 
+# Computational efficient version of calculating m-th order Markov Chains
+
+efficient_mc_er <- function(mc_seq, mc_order=1){
+  unique_states <- as.character(unique(mc_seq))
+  n_states <- length(unique_states)
+  state_space <- data.frame(matrix(NA, nrow=n_states, ncol=mc_order))
+  for(i in 1:mc_order){
+    state_space[,i] <- unique_states
+  }
+  state_space <- c(expand.grid(state_space), sep="")
+  state_space <- do.call(paste, state_space)
+  char_seq <- paste(mc_seq, collapse = '')
+  # print(unique_states)
+  mcer(char_seq, mc_order, unique_states, state_space)
+}
+
+
 ################################################################################
 # Estimation of Entropy Rate utilizing Sliding-Window Lempel-Ziv
 #
@@ -200,6 +219,23 @@ SWLZEntRate <- function(obs_seq, return.data=F){
     return(ent_rate)  
   }
 }
+
+##############
+#
+# Alternative version of SWLZ 
+
+
+fixedwindow_lz77 <- function(mc_seq, window_size = 10){
+  char_seq <- paste(mc_seq, collapse = '')
+  lz77entropy(char_seq, window_size)
+}
+
+fixedquick_lz77 <- function(mc_seq, window_size = 10){
+  char_seq <- paste(mc_seq, collapse = '')
+  lz77entropy_quick(char_seq, window_size)
+}
+
+
 
 ################################################################################
 #
@@ -229,4 +265,63 @@ CalcEntropyRate <- function(event_seq,
   }
 }
 
+
+################################################################################
+#
+#  Bootstrap functions 
+#
+#
+
+
+
+block_bootstrap <- function(mc_seq, block_size){
+  n_blocks <- floor(length(mc_seq) / block_size)
+  new_seq <- rep(NA, length = n_blocks * block_size)
+  blocks <- sample(1:n_blocks, replace = T)
+  for(i in 1:n_blocks){
+    beg_ind <- (i-1)*block_size + 1
+    end_ind <- beg_ind + block_size - 1
+    
+    block_start <- (blocks[i] - 1) * block_size + 1
+    block_end <- block_start + block_size - 1
+    new_seq[beg_ind:end_ind] <- mc_seq[block_start:block_end]
+  }
+  return(new_seq)
+}
+
+overlap_bootstrap <- function(mc_seq, block_size){
+  seq_len <- length(mc_seq)
+  n_blocks <- floor(seq_len / block_size)
+  new_seq <- rep(NA, length = n_blocks * block_size)
+  block_loc <- sample(1:(seq_len - block_size + 1), replace = T)
+  for(i in 1:n_blocks){
+    beg_ind <- (i-1)*block_size + 1
+    end_ind <- beg_ind + block_size - 1
+    block_start <- block_loc[i]
+    block_end <- block_start + block_size - 1
+    new_seq[beg_ind:end_ind] <- mc_seq[block_start:block_end]
+  }
+  return(new_seq)
+}
+
+stationary_bootstrap <- function(mc_seq, p){
+  seq_len <- length(mc_seq)
+  block_sizes <- rgeom(seq_len, p) + 1
+  block_locs <- cumsum(block_sizes)
+  n_blocks <- sum(block_locs <= seq_len) + 1
+  block_starts <- block_locs - block_sizes + 1
+  block_ind <- sample(1:seq_len, size = n_blocks, replace = T)
+  new_seq <- rep(NA, length = cumsum(block_sizes)[n_blocks])
+  for(i in 1:n_blocks){
+    block_size <- block_sizes[i]
+    # beg_ind <- (i-1)*block_size + 1
+    beg_ind <- block_starts[i]
+    end_ind <- beg_ind + block_size - 1
+    block_start <- block_ind[i]
+    block_end <- block_start + block_size - 1
+    seq_pos <- ((block_start:block_end - 1) %% seq_len) + 1
+    new_seq[beg_ind:end_ind] <- mc_seq[seq_pos]
+  }
+  new_seq[1:seq_len]
+}
 
