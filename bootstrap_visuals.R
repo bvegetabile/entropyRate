@@ -39,61 +39,61 @@ summarize.sims <- function(sims){
   }
 }
 
-plot.simresults <- function(i, titl){
-  titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'SWLZ')
-  par(mfrow=c(1,3), oma=c(0,0,0,0), mar=c(5,4,3,0.5))
-  fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
-  sim.data <- readRDS(fname)
-  tru <- sim.data[['True Entropy']]
-  tab <- cbind(summarize.sims(sim.data[[7]]), 
-               summarize.sims(sim.data[[8]]), 
-               summarize.sims(sim.data[[9]]))
-  emp_stderr <- apply(sim.data[[4]], 2, sd)
-  for(j in 1:3){
-    pts <- tab[,((j-1)*4 + 1):(j*4)]
-    plot(1, xlim = c(0,0.5), ylim=c(0.75,5.25), type="n", axes=F,
-         xlab="Est. Entropy", ylab="Chain Length",
-         main=paste(titl, titles[j], '\nBootstrap Std. Errs', sep=" "))
-    top <- nrow(pts) + 1
-    for(k in 1:nrow(pts)){
-      lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
-      points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
-      points(emp_stderr[k], top-k, pch=19, col=rgb(0,0,0.75,0.5), cex=1.5)
-    }
-    # abline(v=tru, lty=3)
-    axis(2, at=1:5, labels = c(5000,1000,500,250,50), las=2)
-    axis(1, at=c(0,0.5,0.25))
-    abline(v=0, lty=3)
-  }
-}
+# plot.simresults <- function(i, titl){
+#   titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'SWLZ')
+#   par(mfrow=c(1,3), oma=c(0,0,0,0), mar=c(5,4,3,0.5))
+#   fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
+#   sim.data <- readRDS(fname)
+#   tru <- sim.data[['True Entropy']]
+#   tab <- cbind(summarize.sims(sim.data[[7]]), 
+#                summarize.sims(sim.data[[8]]), 
+#                summarize.sims(sim.data[[9]]))
+#   emp_stderr <- apply(sim.data[[4]], 2, sd)
+#   for(j in 1:3){
+#     pts <- tab[,((j-1)*4 + 1):(j*4)]
+#     plot(1, xlim = c(0,0.5), ylim=c(0.75,5.25), type="n", axes=F,
+#          xlab="Est. Entropy", ylab="Chain Length",
+#          main=paste(titl, titles[j], '\nBootstrap Std. Errs', sep=" "))
+#     top <- nrow(pts) + 1
+#     for(k in 1:nrow(pts)){
+#       lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
+#       points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
+#       points(emp_stderr[k], top-k, pch=19, col=rgb(0,0,0.75,0.5), cex=1.5)
+#     }
+#     # abline(v=tru, lty=3)
+#     axis(2, at=1:5, labels = c(5000,1000,500,250,50), las=2)
+#     axis(1, at=c(0,0.5,0.25))
+#     abline(v=0, lty=3)
+#   }
+# }
+# 
+# 
+# pdf('2017-10-24_lowent_stderr.pdf', height=2.5, width=10)
+# plot.simresults(4, 'Low')
+# dev.off()
+# 
+# pdf('2017-10-24_medent_stderr.pdf', height=2.5, width=10)
+# plot.simresults(5, 'Med.')
+# dev.off()
+# 
+# pdf('2017-10-24_highent_stderr.pdf', height=2.5, width=10)
+# plot.simresults(6, 'High')
+# dev.off()
+# 
+# 
+# plot.simresults(7, 'Periodic')
 
 
-pdf('2017-10-24_lowent_stderr.pdf', height=2.5, width=10)
-plot.simresults(4, 'Low')
-dev.off()
-
-pdf('2017-10-24_medent_stderr.pdf', height=2.5, width=10)
-plot.simresults(5, 'Med.')
-dev.off()
-
-pdf('2017-10-24_highent_stderr.pdf', height=2.5, width=10)
-plot.simresults(6, 'High')
-dev.off()
-
-
-plot.simresults(7, 'Periodic')
-
-
-i <- 7
-fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
-sim.data <- readRDS(fname)
-tru <- sim.data[['True Entropy']]
-tab <- cbind(summarize.sims(sim.data[[7]]), 
-             summarize.sims(sim.data[[8]]), 
-             summarize.sims(sim.data[[9]]))
-emp_stderr <- apply(sim.data[[4]], 2, sd)
-
-plot(sim.data[[4]], sim.data[[7]])
+# i <- 7
+# fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
+# sim.data <- readRDS(fname)
+# tru <- sim.data[['True Entropy']]
+# tab <- cbind(summarize.sims(sim.data[[7]]), 
+#              summarize.sims(sim.data[[8]]), 
+#              summarize.sims(sim.data[[9]]))
+# emp_stderr <- apply(sim.data[[4]], 2, sd)
+# 
+# plot(sim.data[[4]], sim.data[[7]])
 
 
 
@@ -155,14 +155,224 @@ plot_stderr <- function(j, tab, titl, titles, emp_stderr){
   abline(v=0, lty=3)
 }
 
-pdf('./figures/2017-10-24_lowent.pdf', height=7, width=4.5)
+# pdf('./figures/2017-10-24_lowent.pdf', height=7, width=4.5)
 plot_sims(4, 'Low Entropy Rate')
-dev.off()
+# dev.off()
 
-pdf('./figures/2017-10-24_medent.pdf', height=7, width=4.5)
+# pdf('./figures/2017-10-24_medent.pdf', height=7, width=4.5)
 plot_sims(5, 'Medium Entropy Rate')
+# dev.off()
+
+# pdf('./figures/2017-10-24_highent.pdf', height=7, width=4.5)
+plot_sims(6, 'High Entropy Rate')
+# dev.off()
+
+# Figures for paper ------------------------------------------------------------
+
+
+plot_ests_paper <- function(i,titl){
+  titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'Lempel-Ziv')
+  par(mfrow=c(1,3), oma=c(0,2,0,0), mar=c(5,6,3,0.5))
+  fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
+  sim.data <- readRDS(fname)
+  
+  tru <- sim.data[['True Entropy']]
+  
+  tab <- sim.data[[2]]
+  
+  # tab_stderrs <- cbind(summarize.sims(sim.data[[7]]), 
+  #                      summarize.sims(sim.data[[8]]), 
+  #                      summarize.sims(sim.data[[9]]))
+  # 
+  # emp_stderr <- apply(sim.data[[4]], 2, sd)
+  
+  
+  for(j in 1:3){
+    pts <- tab[,((j-1)*4 + 1):(j*4)]
+    plot(1, xlim = c(0,max(3,max(pts))), ylim=c(0.75,5.25), type="n", axes=F, 
+         xlab="Est. Entropy Rate", ylab="Chain Length",
+         main=paste(titles[j], '\nEntropy Rate Estimate', sep=" "))
+    top <- nrow(pts) + 1
+    for(k in 1:nrow(pts)){
+      lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
+      points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
+    }
+    abline(v=tru, lty=3)
+    axis(2, at=1:5, labels = c(5000,1000,500,250,50), las=2)
+    axis(1, at=c(0,1.5,3))
+    # mtext(sidelab, side=2, line = 4)
+  }
+  mtext(titl, side=2, line =0, outer=T)
+  
+}
+
+plot_stderr_paper <- function(i,titl){
+  titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'Lempel-Ziv')
+  par(mfrow=c(1,3), oma=c(0,2,0,0), mar=c(5,6,3,0.5))
+  fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
+  sim.data <- readRDS(fname)
+  
+  tru <- sim.data[['True Entropy']]
+  
+  # tab <- sim.data[[2]]
+  
+  tab <- cbind(summarize.sims(sim.data[[7]]),
+               summarize.sims(sim.data[[8]]),
+               summarize.sims(sim.data[[9]]))
+
+  emp_stderr <- apply(sim.data[[4]], 2, sd)
+
+  
+  for(j in 1:3){
+    pts <- tab[,((j-1)*4 + 1):(j*4)]
+    plot(1, xlim = c(0,0.5), ylim=c(0.75,5.25), type="n", axes=F,
+         xlab="Bootstrap Standard Error", ylab="Chain Length",
+         main=paste(titles[j], '\nBootstrap Standard Error', sep=" "))
+    top <- nrow(pts) + 1
+    for(k in 1:nrow(pts)){
+      lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
+      points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
+      points(emp_stderr[k], top-k, pch=19, col=rgb(0,0,0.75,0.5), cex=1.5)
+    }
+    # abline(v=tru, lty=3)
+    axis(2, at=1:5, labels = c(5000,1000,500,250,50), las=2)
+    axis(1, at=c(0,0.5,0.25))
+    abline(v=0, lty=3)
+  }
+  mtext(titl, side=2, line =0, outer=T)
+  
+}
+
+
+pdf('./figures/2017-10-24_lowentests.pdf', height=2.5, width=10)
+plot_ests_paper(4, 'Low Entropy Rate')
 dev.off()
 
-pdf('./figures/2017-10-24_highent.pdf', height=7, width=4.5)
-plot_sims(6, 'High Entropy Rate')
+pdf('./figures/2017-10-24_medentests.pdf', height=2.5, width=10)
+plot_ests_paper(5, 'Medium Entropy Rate')
 dev.off()
+
+pdf('./figures/2017-10-24_highentests.pdf', height=2.5, width=10)
+plot_ests_paper(6, 'High Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-24_lowenterrs.pdf', height=2.5, width=10)
+plot_stderr_paper(4, 'Low Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-24_medenterrs.pdf', height=2.5, width=10)
+plot_stderr_paper(5, 'Medium Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-24_highenterrs.pdf', height=2.5, width=10)
+plot_stderr_paper(6, 'High Entropy Rate')
+dev.off()
+
+# Figures for paper ------------------------------------------------------------
+
+
+plot_ests_paper <- function(i,titl){
+  titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'Lempel-Ziv')
+  par(mfrow=c(1,3), oma=c(0,2,0,0), mar=c(5,6,3,0.5))
+  fname <- paste('./2017-10-25-simulation_setting_', i, '.RDS', sep='')
+  sim.data <- readRDS(fname)
+  
+  tru <- sim.data[['True Entropy']]
+  
+  tab <- sim.data[[2]]
+  
+  # tab_stderrs <- cbind(summarize.sims(sim.data[[7]]), 
+  #                      summarize.sims(sim.data[[8]]), 
+  #                      summarize.sims(sim.data[[9]]))
+  # 
+  # emp_stderr <- apply(sim.data[[4]], 2, sd)
+  
+  
+  for(j in 1:3){
+    pts <- tab[,((j-1)*4 + 1):(j*4)]
+    plot(1, xlim = c(0,max(3,max(pts))), ylim=c(0.75,6.25), type="n", axes=F, 
+         xlab="Est. Entropy Rate", ylab="Chain Length",
+         main=paste(titles[j], '\nEntropy Rate Estimate', sep=" "))
+    top <- nrow(pts) + 1
+    for(k in 1:nrow(pts)){
+      lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
+      points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
+    }
+    abline(v=tru, lty=3)
+    axis(2, at=1:6, labels = c(10000,5000,1000,500,250,50), las=2)
+    axis(1, at=c(0,1.5,3))
+    # mtext(sidelab, side=2, line = 4)
+  }
+  mtext(titl, side=2, line =0, outer=T)
+  
+}
+
+plot_stderr_paper <- function(i,titl){
+  titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'Lempel-Ziv')
+  par(mfrow=c(1,3), oma=c(0,2,0,0), mar=c(5,6,3,0.5))
+  fname <- paste('./2017-10-25-simulation_setting_', i, '.RDS', sep='')
+  sim.data <- readRDS(fname)
+  
+  tru <- sim.data[['True Entropy']]
+  
+  # tab <- sim.data[[2]]
+  
+  tab <- cbind(summarize.sims(sim.data[[7]]),
+               summarize.sims(sim.data[[8]]),
+               summarize.sims(sim.data[[9]]))
+  
+  emp_stderr <- apply(sim.data[[4]], 2, sd)
+  
+  
+  for(j in 1:3){
+    pts <- tab[,((j-1)*4 + 1):(j*4)]
+    plot(1, xlim = c(0,0.5), ylim=c(0.75,6.25), type="n", axes=F,
+         xlab="Bootstrap Standard Error", ylab="Chain Length",
+         main=paste(titles[j], '\nBootstrap Standard Error', sep=" "))
+    top <- nrow(pts) + 1
+    for(k in 1:nrow(pts)){
+      lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
+      points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
+      points(emp_stderr[k], top-k, pch=19, col=rgb(0,0,0.75,0.5), cex=1.5)
+    }
+    # abline(v=tru, lty=3)
+    axis(2, at=1:6, labels = c(10000,5000,1000,500,250,50), las=2)
+    axis(1, at=c(0,0.5,0.25))
+    abline(v=0, lty=3)
+  }
+  mtext(titl, side=2, line =0, outer=T)
+  
+}
+
+
+pdf('./figures/2017-10-25_lowentests.pdf', height=2.5, width=10)
+plot_ests_paper(4, 'Low Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-25_medentests.pdf', height=2.5, width=10)
+plot_ests_paper(5, 'Medium Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-25_highentests.pdf', height=2.5, width=10)
+plot_ests_paper(6, 'High Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-25_lowenterrs.pdf', height=2.5, width=10)
+plot_stderr_paper(4, 'Low Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-25_medenterrs.pdf', height=2.5, width=10)
+plot_stderr_paper(5, 'Medium Entropy Rate')
+dev.off()
+
+pdf('./figures/2017-10-25_highenterrs.pdf', height=2.5, width=10)
+plot_stderr_paper(6, 'High Entropy Rate')
+dev.off()
+
+
+
+
+
+
+
+
