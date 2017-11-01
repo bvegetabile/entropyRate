@@ -1,4 +1,4 @@
-setwd('/Users/bvegetabile/Dropbox/ucirvine/research/papers/2017_entropyrate/methodpaper/2017_sims/')
+setwd('/Users/bvegetabile/Dropbox/ucirvine/research/papers/2017_entropyrate/2017-10-JEBS/figures/')
 source('/Users/bvegetabile/git/entropyRate/entropyRate.R')
 
 #-------------------------------------------------------------------------------
@@ -237,7 +237,9 @@ pdf('so_analytical_diff.pdf', height=5, width=6)
 par(mfcol=c(1,1), mar=c(5,4,2,1)+0.1)
 plotEntropyDifference(0.4, 0.75, 100, 100, '')
 points(para_set1[1], para_set1[2], pch=18, lwd=2, cex=2)
+text(para_set1[1], para_set1[2], "I", cex=1.5, pos = 2, family='Times')
 points(para_set2[1], para_set2[2], pch=18, lwd=2, cex=2)
+text(para_set2[1], para_set2[2], "II", cex=1.5, pos = 2, family='Times')
 dev.off()
 # 
 #-------------------------------------------------------------------------------
