@@ -9,8 +9,8 @@
 # Loading relevent packages
 
 library("stringr")
-Rcpp::sourceCpp("/Users/bvegetabile/git/entropyRate/MCER/mcer.cpp")
-Rcpp::sourceCpp("/Users/bvegetabile/git/entropyRate/swlz_c.cpp")
+Rcpp::sourceCpp("~/git/entropyRate/MCER/mcer.cpp")
+Rcpp::sourceCpp("~/git/entropyRate/swlz_c.cpp")
 
 ################################################################################
 # Simulating Finite Markov Chains

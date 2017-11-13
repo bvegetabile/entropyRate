@@ -158,7 +158,7 @@ trellis.state.transition(test.cases[[7]], 'Period Entropy Case, Entropy Rate:')
 
 par(mfrow=c(1,1))
 set.seed(23124)
-for(test in 6:7){
+for(test in 4:7){
   print(paste('Simulation ', test, ' Started at: ', Sys.time()))
   nsimulations <- 100
   n_bootstrap <- 100
@@ -168,7 +168,7 @@ for(test in 6:7){
   state_space <- seq(1:nstates)
   true.entropy.rate <- CalcMarkovEntropyRate(trans_mat, CalcEigenStationary(trans_mat))
   
-  test.lengths <- c(50, 250, 500, 1000, 5000)
+  test.lengths <- c(50, 250, 500, 1000, 5000, 10000)
   n_tl <- length(test.lengths)
   
   max_sim_length = max(test.lengths)
@@ -181,10 +181,6 @@ for(test in 6:7){
   stderr.empirical.entropy.matrix <- matrix(NA, nrow=nsimulations, ncol=n_tl)
   stderr.lempel.ziv.matrix <- matrix(NA, nrow=nsimulations, ncol=n_tl)
   stderr.eigen.entropy.matrix <- matrix(NA, nrow=nsimulations, ncol=n_tl)
-  
-  coverage.empirical.entropy.matrix <- matrix(NA, nrow=nsimulations, ncol=n_tl)
-  coverage.lempel.ziv.matrix <- matrix(NA, nrow=nsimulations, ncol=n_tl)
-  coverage.eigen.entropy.matrix <- matrix(NA, nrow=nsimulations, ncol=n_tl)
   
   run_start <- Sys.time()
   for (i in 1:nsimulations){
@@ -234,26 +230,14 @@ for(test in 6:7){
           bs.eig.ent <- NA
         }
         
-        bs.lz.ent <- CalcEntropyRate(bs.lz, 1:8, method = "SWLZ")
         p.lz <- lz_entropyrate / log2(n)
         bs.lz <- stationary_bootstrap(ss, p.lz)
-        
+        bs.lz.ent <- CalcEntropyRate(bs.lz, 1:8, method = "SWLZ")
         
         bootstrap_ests[b, ] <- c(bs.emp.ent, bs.eig.ent, bs.lz.ent)
       }
       bs_stderrs <- apply(bootstrap_ests, 2, sd, na.rm=T)
-      
-      emp_low <- emp.ent - 1.96 * bs_stderrs[1]
-      eig_low <- eig.ent - 1.96 * bs_stderrs[2]
-      lz_low <- lz_entropyrate - 1.96 * bs_stderrs[3]
-      
-      emp_upp <- emp.ent + 1.96 * bs_stderrs[1]
-      eig_upp <- eig.ent + 1.96 * bs_stderrs[2]
-      lz_upp <- lz_entropyrate + 1.96 * bs_stderrs[3]
-      
-      coverage.empirical.entropy.matrix[i,c] <- (emp_low < true.entropy.rate & emp_upp > true.entropy.rate)
-      coverage.lempel.ziv.matrix[i,c] <- (lz_low < true.entropy.rate & lz_upp > true.entropy.rate)
-      coverage.eigen.entropy.matrix[i,c] <- (eig_low < true.entropy.rate & eig_upp > true.entropy.rate)
+    
       
       stderr.empirical.entropy.matrix[i,c] <- bs_stderrs[1]
       stderr.eigen.entropy.matrix[i,c] <- bs_stderrs[2]
@@ -285,59 +269,55 @@ for(test in 6:7){
   simulation.output[['Std.Err. Eigen Entropies']] <- stderr.eigen.entropy.matrix
   simulation.output[['Std.Err. Lempel Ziv']] <- stderr.lempel.ziv.matrix
   
-  simulation.output[['Coverage Empirical Entropies']] <- coverage.empirical.entropy.matrix
-  simulation.output[['Coverage Eigen Entropies']] <- coverage.eigen.entropy.matrix
-  simulation.output[['Coverage Lempel Ziv']] <- coverage.lempel.ziv.matrix
-  
   simulation.output[['Simulated Chains']] <- sample.chains
-  saveRDS(simulation.output, file=paste('./simulation_oct2017.', test, '.RDS', sep=''))
+  saveRDS(simulation.output, file=paste('./2017-10-25-simulation_setting_', test, '.RDS', sep=''))
   print(paste('Simulation ', test, ' Finished at: ', Sys.time()))
 }
 # 
-plot.simresults <- function(i, titl){
-  titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'SWLZ')
-  par(mfrow=c(1,3), oma=c(0,0,0,0), mar=c(5,4,3,0.5))
-  fname <- paste('./simulation_may2017.', i, '.RDS', sep='')
-  sim.data <- readRDS(fname)
-  tru <- sim.data[['True Entropy']]
-  tab <- sim.data[['Simulation Table']]
-  for(j in 1:3){
-    pts <- tab[,((j-1)*4 + 1):(j*4)]
-    plot(1, xlim = c(0,max(3,max(pts))), ylim=c(0.75,6.25), type="n", axes=F,
-         xlab="Est. Entropy", ylab="Chain Length",
-         main=paste(titl, titles[j], sep=" "))
-    top <- nrow(pts) + 1
-    for(k in 1:nrow(pts)){
-      lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
-      points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
-    }
-    abline(v=tru, lty=3)
-    axis(2, at=1:6, labels = c(50000, 5000,1000,500,250,50), las=2)
-    axis(1, at=c(0,1.5,3))
-  }
-}
-
-plot_stderrs <- function(i, titl){
-  titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'SWLZ')
-  par(mfrow=c(1,3), oma=c(0,0,0,0), mar=c(5,4,3,0.5))
-  fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
-  sim.data <- readRDS(fname)
-  tru <- sim.data[['True Entropy']]
-  tab <- sim.data[['Simulation Table']]
-  for(j in 1:3){
-    pts <- tab[,((j-1)*4 + 1):(j*4)]
-    plot(1, xlim = c(0,max(3,max(pts))), ylim=c(0.75,6.25), type="n", axes=F,
-         xlab="Est. Entropy", ylab="Chain Length",
-         main=paste(titl, titles[j], sep=" "))
-    top <- nrow(pts) + 1
-    for(k in 1:nrow(pts)){
-      lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
-      points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
-    }
-    abline(v=tru, lty=3)
-    axis(2, at=1:6, labels = c(50000, 5000,1000,500,250,50), las=2)
-    axis(1, at=c(0,1.5,3))
-  }
-}
-
-
+# plot.simresults <- function(i, titl){
+#   titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'SWLZ')
+#   par(mfrow=c(1,3), oma=c(0,0,0,0), mar=c(5,4,3,0.5))
+#   fname <- paste('./simulation_may2017.', i, '.RDS', sep='')
+#   sim.data <- readRDS(fname)
+#   tru <- sim.data[['True Entropy']]
+#   tab <- sim.data[['Simulation Table']]
+#   for(j in 1:3){
+#     pts <- tab[,((j-1)*4 + 1):(j*4)]
+#     plot(1, xlim = c(0,max(3,max(pts))), ylim=c(0.75,6.25), type="n", axes=F,
+#          xlab="Est. Entropy", ylab="Chain Length",
+#          main=paste(titl, titles[j], sep=" "))
+#     top <- nrow(pts) + 1
+#     for(k in 1:nrow(pts)){
+#       lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
+#       points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
+#     }
+#     abline(v=tru, lty=3)
+#     axis(2, at=1:6, labels = c(50000, 5000,1000,500,250,50), las=2)
+#     axis(1, at=c(0,1.5,3))
+#   }
+# }
+# 
+# plot_stderrs <- function(i, titl){
+#   titles <- c('Empirical Stationary', 'Eigenvector Stationary', 'SWLZ')
+#   par(mfrow=c(1,3), oma=c(0,0,0,0), mar=c(5,4,3,0.5))
+#   fname <- paste('./simulation_oct2017.', i, '.RDS', sep='')
+#   sim.data <- readRDS(fname)
+#   tru <- sim.data[['True Entropy']]
+#   tab <- sim.data[['Simulation Table']]
+#   for(j in 1:3){
+#     pts <- tab[,((j-1)*4 + 1):(j*4)]
+#     plot(1, xlim = c(0,max(3,max(pts))), ylim=c(0.75,6.25), type="n", axes=F,
+#          xlab="Est. Entropy", ylab="Chain Length",
+#          main=paste(titl, titles[j], sep=" "))
+#     top <- nrow(pts) + 1
+#     for(k in 1:nrow(pts)){
+#       lines(c(pts[k,3], pts[k,4]), rep(top-k, 2))
+#       points(c(pts[k,1], pts[k,3], pts[k,4]), rep(top-k, 3), pch=4)
+#     }
+#     abline(v=tru, lty=3)
+#     axis(2, at=1:6, labels = c(50000, 5000,1000,500,250,50), las=2)
+#     axis(1, at=c(0,1.5,3))
+#   }
+# }
+# 
+# 
