@@ -2,9 +2,8 @@ library("stringr")
 library('xtable')
 library('dirmult')
 library('lattice')
-source('/Users/bvegetabile/git/entropyRate/entropyRate.R')
-source('/Users/bvegetabile/Dropbox/rCode/bvplot.R')
-setwd('/Users/bvegetabile/Dropbox/ucirvine/research/papers/2017_entropyrate/methodpaper/')
+source('~/git/entropyRate/entropyRate.R')
+setwd('/Users/bvegetabile/Dropbox/ucirvine/research/papers/2017_entropyrate/2017-10-JEBS/figures/')
 
 ################################################################################
 #
@@ -34,7 +33,7 @@ rat.trellis.state.transition <- function(test.case, titl='True Entropy Rate:'){
 }
 
 
-ratfile <- 'rodentdata//Rats.csv'
+ratfile <- '../rodentdata//Rats.csv'
 rats=read.csv(ratfile,header=T)
 
 n.rats <- max(rats$Rat)
@@ -116,8 +115,6 @@ ces.rats <- rat.results[!rat.results$Control=='CTL',]
 print(xtable(rat.results[order(rat.results$Control),c(1,2,3,4,6,8,5,7)], 
              digits = c(0,0,0,0,4,4,4,4,4)), include.rownames=FALSE)
 
-round(apply(tester[1:6,c(4, 5, 6, 7, 8)], 2, mean), 4)
-round(apply(tester[7:12,c(4, 5, 6, 7, 8)], 2, mean), 4)
 
 t.test(SWLZEntropy ~ Control, data=rat.results, var.equal = T)
 t.test(M1_EmpEntropy ~ Control, data=rat.results, var.equal = T)

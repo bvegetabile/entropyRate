@@ -1,5 +1,5 @@
 setwd('/Users/bvegetabile/Dropbox/ucirvine/research/papers/2017_entropyrate/2017-10-JEBS/figures/')
-source('/Users/bvegetabile/git/entropyRate/entropyRate.R')
+source('~/git/entropyRate/entropyRate.R')
 
 #-------------------------------------------------------------------------------
 # Setup and functions for second order process----------------------------------

@@ -15,7 +15,7 @@ library("stringr")
 library('xtable')
 library('dirmult')
 library('lattice')
-source('/Users/bvegetabile/git/entropyRate/entropyRate.R')
+source('~/git/entropyRate/entropyRate.R')
 setwd('/Users/bvegetabile/Dropbox/ucirvine/research/papers/2017_entropyrate/2017-10-JEBS/')
 
 ################################################################################
